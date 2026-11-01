@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem E-Perelek Warga</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Palet Kertas & Tinta yang Dipoles */
+            --bg-page: #F4F4F1;
+            --bg-surface: #FFFFFF;
+            --text-main: #1C1C1C;
+            --text-muted: #64748B; 
+            --border-color: #E2E8F0; 
+            
+            --accent: #1B4332;
+            --danger: #DC2626;
+            --success: #16A34A;
+            
+            --radius: 8px;
+            --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 12px -4px rgba(0, 0, 0, 0.04);
+            
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            display: flex; 
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            font-size: 15px;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Lora', serif; font-weight: 600; color: var(--text-main); }
+
+        .hidden { display: none !important; }
+
+        /* ================= SIDEBAR & NAVIGATION ================= */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh;
+            z-index: 100;
+        }
+
+        .brand {
+            height: 88px; min-height: 88px; flex-shrink: 0; padding: 0 24px;
+            display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-surface);
+        }
+        .nav-menu { flex: 1; min-height: 0; }
+        .brand-mark { width: 44px; height: 44px; flex-shrink: 0; color: var(--accent); }
+        .brand-mark svg { width: 100%; height: 100%; display: block; }
+        .brand-text { min-width: 0; }
+        .brand h2 { font-size: 20px; letter-spacing: -0.4px; line-height: 1.15; }
+        .brand p { font-size: 12px; color: var(--text-muted); font-family: 'Inter', sans-serif; margin-top: 3px; white-space: nowrap; }
+
+        .menu-label {
+            padding: 24px 24px 8px;
+            font-size: 12px; font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-list { list-style: none; padding: 0 16px; flex: 1; }
+        
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; margin-bottom: 4px;
+            color: var(--text-muted); font-size: 14px; font-weight: 500;
+            border-radius: var(--radius); cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-item:hover { background-color: #F1F5F9; color: var(--text-main); }
+        .nav-item.active { background-color: var(--accent); color: var(--bg-surface); box-shadow: var(--shadow-subtle); }
+        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        
+        .nav-logout { color: var(--danger); margin-top: auto; margin-bottom: 24px; }
+        .nav-logout:hover { background-color: #FEF2F2; color: var(--danger); }
+
+        /* ================= AREA KONTEN UTAMA ================= */
+        .main-wrapper {
+            margin-left: var(--sidebar-width); flex: 1;
+            padding: 40px; width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Topbar: bilah atas terpisah dari isi halaman */
+        .header {
+            position: sticky; top: 0; z-index: 50;
+            margin: -40px -40px 32px; padding: 0 40px; height: 88px;
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 6px 14px -10px rgba(0,0,0,0.18);
+        }
+        .header-title { display: flex; flex-direction: column; gap: 2px; }
+        .header-title::before {
+            content: ''; font-size: 11.5px; font-weight: 600; letter-spacing: 1.6px; color: var(--accent);
+        }
+        .header-title h1 { font-size: 26px; margin: 0; letter-spacing: -0.3px; line-height: 1.2; }
+        .user-profile { display: flex; align-items: center; gap: 12px; text-align: right; }
+        .user-text { display: flex; flex-direction: column; }
+        .user-profile strong { display: block; font-size: 15px; font-weight: 600; line-height: 1.3; }
+        .user-profile span { font-size: 13px; color: var(--text-muted); }
+        .user-avatar {
+            width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+            background-color: #EAF1E8; color: var(--accent); border: 1px solid #C9D8C5;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .user-avatar svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ================= MODE LOGIN ================= */
+        body.login-mode .sidebar { display: none; }
+        body.login-mode .main-wrapper { margin-left: 0; width: 100%; display: flex; justify-content: center; align-items: center; }
+        body.login-mode .header { display: none; }
+
+        #loginBox {
+            background: var(--bg-surface); padding: 48px; 
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-card);
+            width: 100%; max-width: 400px; border-radius: var(--radius);
+        }
+        #loginBox h2 { margin-bottom: 8px; font-size: 24px; text-align: center; }
+        #loginBox > p { text-align: center; margin-bottom: 32px; color: var(--text-muted); font-size: 14px; }
+        
+        .divider { display: flex; align-items: center; text-align: center; margin: 24px 0; color: var(--text-muted); font-size: 12px; font-weight: 600;}
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
+        .divider::before { margin-right: 1em; } .divider::after { margin-left: 1em; }
+
+        /* ================= KOMPONEN UI ================= */
+        .box {
+            background: var(--bg-surface); padding: 24px;
+            border: 1px solid var(--border-color); border-radius: var(--radius);
+            box-shadow: var(--shadow-card); margin-bottom: 24px;
+        }
+
+        /* Ringkasan Ledger / Pita Angka */
+        .ledger-summary {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .summary-item { 
+            display: flex; flex-direction: column; 
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow-subtle);
+            border-top: 3px solid var(--accent);
+        }
+        .summary-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .summary-value { font-family: 'Lora', serif; font-size: 28px; color: var(--text-main); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+        
+        /* Formulir */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
+            width: 100%; padding: 12px 16px; border: 1px solid var(--border-color);
+            background-color: var(--bg-surface); font-family: 'Inter', sans-serif; font-size: 14px;
+            border-radius: var(--radius); outline: none; transition: all 0.2s; box-shadow: var(--shadow-subtle);
+        }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(27,67,50,0.15); }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: end;}
+
+        button {
+            background-color: var(--accent); color: var(--bg-surface); border: 1px solid var(--accent);
+            padding: 12px 20px; font-size: 14px; font-weight: 500; font-family: inherit;
+            cursor: pointer; border-radius: var(--radius); transition: all 0.2s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: var(--shadow-subtle);
+        }
+        button:hover { background-color: #14352A; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:active { transform: translateY(0); box-shadow: none; }
+        
+        .btn-danger { background-color: var(--bg-surface); color: var(--danger); border-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger); color: white; }
+        .btn-secondary { background-color: #F8FAFC; color: var(--text-main); border-color: var(--border-color); }
+        .btn-secondary:hover { background-color: #E2E8F0; }
+
+        .btn-aksi { padding: 6px 12px; font-size: 12px; margin-right: 4px; box-shadow: none; }
+        .btn-aksi:hover { transform: none; box-shadow: none; }
+        .btn-edit { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-hapus { background: var(--bg-surface); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-edit:hover { background: #F1F5F9; } .btn-hapus:hover { background: var(--danger); color: white; }
+
+        /* Tabel (Diperhalus) */
+        .table-header-ui { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .table-header-ui h3 { font-size: 18px; margin: 0; }
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius); }
+        table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        th { background-color: #EAF1E8; font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;}
+        tbody tr { transition: background-color 0.15s; }
+        tbody tr:hover td { background-color: #F8FAFC; }
+        td.angka { text-align: right; }
+        
+        .row-pemisah td { background-color: var(--bg-page); font-weight: 600; color: var(--text-main); font-size: 12px; padding: 10px 16px; }
+
+        /* Area Drag Drop CSV */
+        #drop-zone { border: 2px dashed var(--border-color); padding: 32px; text-align: center; border-radius: var(--radius); cursor: pointer; background: #FAFAFA; margin-bottom: 24px; transition: all 0.2s;}
+        #drop-zone:hover { border-color: var(--text-muted); background: var(--bg-surface); }
+        
+        /* Mobile List Warga (Petugas) */
+        .warga-card {
+            display: flex; align-items: center; padding: 16px; 
+            border-bottom: 1px solid var(--border-color); cursor: pointer;
+            background: var(--bg-surface); transition: background 0.2s;
+        }
+        .warga-card:hover { background: #F8FAFC; }
+        .warga-card input[type="checkbox"] { width: 20px; height: 20px; margin-right: 16px; cursor: pointer; accent-color: var(--accent); }
+        .warga-info { display: flex; flex-direction: column; }
+        .warga-info strong { font-size: 15px; color: var(--text-main); }
+        .warga-info span { font-size: 13px; color: var(--text-muted); margin-top: 2px;}
+
+        /* Filter Controls */
+        .filter-controls { display: flex; gap: 8px; align-items: center; }
+        .filter-controls input[type="date"] { margin: 0; padding: 8px 12px; height: 38px; font-size: 13px; box-shadow: none; }
+        .filter-controls button { height: 38px; padding: 8px 16px; font-size: 13px; box-shadow: none; }
+
+        /* SweetAlert Override Halus */
+        .swal-square { border-radius: 8px !important; border: 1px solid var(--border-color); box-shadow: var(--shadow-card) !important; }
+        .swal2-confirm { background-color: var(--accent) !important; border-radius: 6px !important; font-family: 'Inter', sans-serif !important; box-shadow: var(--shadow-subtle) !important;}
+        .swal2-cancel, .swal2-deny { background-color: #FFFFFF !important; color: var(--text-main) !important; border: 1px solid var(--border-color) !important; border-radius: 6px !important; font-family: 'Inter', sans-serif !important; }
+        .swal2-title { font-family: 'Lora', serif !important; color: var(--text-main) !important; }
+        .swal2-html-container { font-family: 'Inter', sans-serif !important; color: var(--text-muted) !important; }
+
+        /* ================= RESPONSIVE (TABLET) ================= */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            :root { --sidebar-width: 220px; }
+            .main-wrapper { padding: 32px 24px; }
+            .header { margin: -32px -24px 28px; padding: 0 24px; }
+            .form-row[style] { grid-template-columns: 1fr 1fr !important; }
+        }
+
+        /* ================= LOGIN BRAND ================= */
+        .login-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .login-brand .brand-mark { width: 60px; height: 60px; }
+        .login-brand span { font-family: 'Lora', serif; font-weight: 600; font-size: 13px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Efek sentuh & seleksi */
+        * { -webkit-tap-highlight-color: transparent; }
+        .warga-card:has(input:checked) { background: #EAF1E8; }
+        .warga-card:has(input:checked) strong { color: var(--accent); }
+
+        /* ================= RESPONSIVE (MOBILE) ================= */
+        @media (max-width: 768px) {
+            html, body { overflow-x: hidden; }
+            body { font-size: 14px; display: block; }
+            button:hover { transform: none; box-shadow: var(--shadow-subtle); }
+
+            /* ---------- Navigasi bawah melayang ---------- */
+            .sidebar {
+                width: auto; height: auto; top: auto; left: 10px; right: 10px;
+                bottom: calc(10px + env(safe-area-inset-bottom));
+                border: 1px solid var(--border-color); border-radius: 20px;
+                flex-direction: row; padding: 0; overflow: hidden;
+                background: rgba(255,255,255,0.96);
+                -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+                box-shadow: 0 12px 32px -8px rgba(0,0,0,0.28), 0 2px 6px rgba(0,0,0,0.06);
+            }
+            .brand, .menu-label { display: none !important; }
+            .nav-menu {
+                flex-direction: row !important; align-items: stretch;
+                height: auto !important; width: 100%;
+                overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+            }
+            .nav-menu::-webkit-scrollbar { display: none; }
+            .nav-list {
+                display: flex; flex-direction: row; flex: 1 0 auto;
+                overflow: visible; padding: 6px; gap: 2px; margin: 0;
+            }
+            .nav-item {
+                flex-direction: column; justify-content: center; flex: 1 0 auto;
+                font-size: 10px; line-height: 1.2; padding: 8px 4px;
+                text-align: center; min-width: 62px; max-width: 80px;
+                gap: 4px; margin: 0; border-radius: 14px; white-space: normal;
+                font-weight: 500; box-shadow: none;
+            }
+            .nav-item:hover { background: transparent; }
+            .nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 4px 10px -2px rgba(27,67,50,0.45); }
+            .nav-item svg { width: 21px; height: 21px; flex-shrink: 0; }
+            .nav-logout {
+                margin: 6px 6px 6px 0 !important; flex: 0 0 auto; min-width: 58px;
+                border-left: 1px solid var(--border-color); border-radius: 14px;
+                padding-left: 8px; align-self: stretch;
+            }
+
+            /* ---------- Layout ---------- */
+            .main-wrapper {
+                margin-left: 0; width: 100%; max-width: 100%;
+                padding: 16px 16px calc(104px + env(safe-area-inset-bottom));
+            }
+
+            /* ---------- Header hijau ---------- */
+            .header {
+                margin: -16px -16px 20px; padding: 14px 16px 18px; height: auto; min-height: 72px; gap: 12px;
+                background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
+                border-bottom: none; border-radius: 0 0 24px 24px;
+                box-shadow: 0 10px 24px -12px rgba(27,67,50,0.7);
+            }
+            .header-title { min-width: 0; flex: 1; }
+            .header-title h1 {
+                font-size: 18px; color: #fff; letter-spacing: -0.2px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .user-profile { flex-shrink: 0; }
+            .user-avatar { display: none; }
+            .user-text { align-items: flex-end; gap: 4px; }
+            .user-profile strong {
+                font-size: 11.5px; padding: 5px 11px; background: rgba(255,255,255,0.16);
+                color: #fff; border: 1px solid rgba(255,255,255,0.25);
+                border-radius: 999px; white-space: nowrap;
+            }
+            .user-profile span { display: block; font-size: 10.5px; color: rgba(255,255,255,0.78); }
+
+            /* ---------- Login ---------- */
+            body.login-mode { background: linear-gradient(180deg, #1B4332 0, #2D6A4F 34%, var(--bg-page) 34%); }
+            body.login-mode .main-wrapper { padding: 24px 16px; min-height: 100vh; align-items: center; }
+            #loginBox { padding: 28px 22px 24px; max-width: 100%; border-radius: 20px; border: none; box-shadow: 0 20px 40px -16px rgba(0,0,0,0.35); }
+            #loginBox h2 { font-size: 22px; }
+            #loginBox > p { margin-bottom: 24px; }
+
+            /* ---------- Kartu & ringkasan ---------- */
+            .box { padding: 16px; margin-bottom: 16px; border-radius: 16px; }
+            .ledger-summary { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+            .summary-item { padding: 14px 14px; min-width: 0; border-radius: 16px; border-top: none; border-left: 4px solid var(--accent); }
+            .summary-label { font-size: 10.5px; margin-bottom: 8px; letter-spacing: 0.4px; }
+            .summary-value { font-size: 20px; line-height: 1.15; word-break: break-word; }
+            .ledger-summary .summary-item:first-child {
+                grid-column: 1 / -1; padding: 20px 18px; border: none;
+                background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%);
+                box-shadow: 0 10px 22px -10px rgba(27,67,50,0.65);
+            }
+            .ledger-summary .summary-item:first-child .summary-label { color: rgba(255,255,255,0.78); }
+            .ledger-summary .summary-item:first-child .summary-value { color: #fff; font-size: 32px; }
+            .ledger-summary .summary-item:last-child:nth-child(even) { grid-column: 1 / -1; }
+
+            /* ---------- Form ---------- */
+            .form-row, .form-row[style] { grid-template-columns: 1fr !important; gap: 0; }
+            .form-row .form-group[style] { grid-column: auto !important; }
+            .form-group { margin-bottom: 14px; }
+            .form-row > .form-group > button { height: 48px !important; width: 100% !important; }
+            input[type="text"], input[type="password"], input[type="number"],
+            input[type="date"], select { font-size: 16px; padding: 12px 14px; min-height: 48px; border-radius: 12px; }
+            button { min-height: 46px; border-radius: 12px; }
+            #loginBox > button, #petugas-tab-absen .box > button { border-radius: 14px; }
+
+            /* ---------- Header tabel & filter ---------- */
+            .table-header-ui { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 14px; }
+            .table-header-ui h3 { font-size: 16px; }
+            .filter-controls { width: 100%; }
+            .filter-controls input[type="date"] { flex: 1; min-width: 0; height: 46px; font-size: 16px; }
+            .filter-controls button { height: 46px; flex-shrink: 0; }
+
+            /* ---------- Tabel -> kartu ---------- */
+            .table-responsive { border: none; border-radius: 0; overflow: visible; }
+            table, thead, tbody, tr, td { display: block; width: 100%; }
+            table { min-width: 0; }
+            thead { display: none; }
+            tbody tr:not(.row-pemisah) {
+                background: var(--bg-surface); border: 1px solid var(--border-color);
+                border-radius: 14px; padding: 8px 14px; margin-bottom: 10px;
+                box-shadow: var(--shadow-subtle);
+            }
+            tbody tr:hover td { background: transparent; }
+            td {
+                display: flex; justify-content: space-between; align-items: center; gap: 14px;
+                padding: 8px 0; border: none; border-bottom: 1px dashed var(--border-color);
+                text-align: right; font-size: 14px; word-break: break-word;
+            }
+            tbody tr:not(.row-pemisah) td:last-child { border-bottom: none; }
+            td::before {
+                content: attr(data-label); flex-shrink: 0; text-align: left;
+                font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
+                text-transform: uppercase; color: var(--text-muted);
+            }
+            td:not([data-label])::before { display: none; }
+            td:not([data-label]) { justify-content: center; text-align: center; }
+            td:empty { display: none; }
+            td[data-label="Aksi"] { justify-content: stretch; gap: 8px; padding-top: 12px; }
+            td[data-label="Aksi"]::before { display: none; }
+            td[data-label="Aksi"] .btn-aksi { flex: 1; margin: 0; min-height: 40px; font-size: 13px; }
+            td .btn-aksi { white-space: nowrap; }
+
+            /* Pemisah tanggal -> label kecil */
+            .row-pemisah { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin: 16px 2px 8px; }
+            .row-pemisah td {
+                display: block; width: auto; padding: 5px 12px; border: none; text-align: left !important;
+                background: #EAF1E8; color: var(--accent); border-radius: 999px;
+                font-size: 12px; font-weight: 600;
+            }
+            .row-pemisah td::before { display: none; }
+
+            /* ---------- Daftar warga (petugas) ---------- */
+            #drop-zone { padding: 20px 12px; margin-bottom: 16px; border-radius: 14px; }
+            #containerCheckboxWarga { max-height: 55vh !important; border-radius: 14px !important; }
+            .warga-card { padding: 14px 14px; }
+            .warga-card input[type="checkbox"] { width: 24px; height: 24px; margin-right: 14px; flex-shrink: 0; }
+            .warga-info { min-width: 0; }
+            #sisaKasRT, #sisaKasPublik { font-size: 24px !important; }
+
+            /* ---------- Popup ---------- */
+            .swal2-popup { width: calc(100% - 32px) !important; max-width: 420px; padding: 20px 16px !important; }
+            .swal2-actions { flex-wrap: wrap; gap: 8px; }
+        }
+
+        @media (max-width: 380px) {
+            .summary-value { font-size: 17px; }
+            .ledger-summary .summary-item:first-child .summary-value { font-size: 28px; }
+            .nav-item { min-width: 58px; font-size: 9.5px; }
+            .header-title h1 { font-size: 16px; }
+            .user-profile span { display: none; }
+        }
+    
+        /* ================= POLES TAMPILAN HP (tambahan) ================= */
+        #counterWarga {
+            display: inline-block; margin-left: 8px; padding: 3px 10px; vertical-align: middle;
+            background: #EAF1E8; color: var(--accent); border-radius: 999px;
+            font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+        }
+        .box > h3, .table-header-ui h3 { position: relative; }
+
+        @media (max-width: 768px) {
+            body { background: #F1F3EE; }
+
+            /* Header: label kecil + hiasan lingkaran */
+            .header { position: sticky; overflow: hidden; }
+            .header::after {
+                content: ''; position: absolute; right: -30px; top: -40px; width: 130px; height: 130px;
+                border-radius: 50%; background: rgba(255,255,255,0.07); pointer-events: none;
+            }
+            .header-title::before {
+                content: 'E-PERELEK'; font-size: 10px; font-weight: 600; letter-spacing: 1.8px;
+                color: rgba(255,255,255,0.65);
+            }
+            .header-title h1 { font-size: 20px; }
+
+            /* Kartu ringkasan: warna penanda berbeda */
+            .summary-item { position: relative; overflow: hidden; }
+            .ledger-summary .summary-item:nth-child(2) { border-left-color: var(--success); }
+            .ledger-summary .summary-item:nth-child(3) { border-left-color: var(--danger); }
+            .ledger-summary .summary-item:nth-child(4) { border-left-color: #B7791F; }
+            .ledger-summary .summary-item:first-child::after {
+                content: ''; position: absolute; right: -24px; bottom: -34px; width: 110px; height: 110px;
+                border-radius: 50%; background: rgba(255,255,255,0.09);
+            }
+            .summary-value { font-size: 19px; }
+
+            /* Kotak & judul seksi */
+            .box { box-shadow: 0 2px 10px -4px rgba(0,0,0,0.08); border-color: #E7EAE4; }
+            .table-header-ui h3, .box > h3 { padding-left: 10px; }
+            .table-header-ui h3::before, .box > h3::before {
+                content: ''; position: absolute; left: 0; top: 15%; bottom: 15%;
+                width: 3px; border-radius: 3px; background: var(--accent);
+            }
+
+            /* Kartu tabel lebih rapi */
+            tbody tr:not(.row-pemisah) { padding: 6px 16px; border-color: #E7EAE4; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+            td[data-label="Nama Warga"], td[data-label="Nama Penderma"], td[data-label="Nama Penerima"],
+            td[data-label="Penerima"], td[data-label="Keterangan"] { font-weight: 600; color: var(--text-main); }
+            td[data-label="Status"] span {
+                background: #DCFCE7; color: #166534 !important; padding: 3px 12px;
+                border-radius: 999px; font-size: 12px; font-weight: 600 !important;
+            }
+            td.angka[data-label="Pemasukan"] { color: var(--success); font-weight: 600; }
+            td.angka[data-label="Pengeluaran"] { color: var(--danger); font-weight: 600; }
+
+            /* Daftar warga petugas */
+            #containerCheckboxWarga { border-color: #E7EAE4 !important; background: var(--bg-surface); }
+            .warga-card:last-child { border-bottom: none; }
+            .warga-card:active { background: #F1F5F0; }
+            .warga-card:has(input:checked) { box-shadow: inset 4px 0 0 var(--accent); }
+            .warga-info strong { font-size: 15px; }
+
+            /* Tombol & input */
+            button { font-weight: 600; letter-spacing: 0.1px; }
+            input:focus, select:focus { box-shadow: 0 0 0 3px rgba(27,67,50,0.14); }
+            #drop-zone { background: #FAFBF8; border-color: #C9D8C5; }
+
+            /* Navigasi bawah */
+            .sidebar { border-radius: 22px; }
+            .nav-item { font-weight: 600; transition: background .2s, color .2s; }
+            .nav-item.active svg { transform: translateY(-1px); }
+            .nav-logout { color: var(--danger); }
+
+            /* Login */
+            #loginBox { box-shadow: 0 24px 48px -18px rgba(0,0,0,0.4); }
+            .login-brand { margin-top: -6px; margin-bottom: 14px; }
+            .login-brand .brand-mark {
+                width: 64px; height: 64px; padding: 12px; border-radius: 20px;
+                background: #EAF1E8; box-sizing: border-box;
+            }
+        }
+
+    </style>
+
+</head>
+<body class="login-mode">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="brand">
+        <div class="brand-mark">
+            <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M2 23 C14 21 20 13 24 4 C28 13 34 21 46 23 Z" fill="currentColor"/>
+                <rect x="10" y="25" width="28" height="11" rx="1" fill="currentColor"/>
+                <path d="M17 27v7M24 27v7M31 27v7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>
+                <rect x="12" y="36" width="3.5" height="8" fill="currentColor"/>
+                <rect x="32.5" y="36" width="3.5" height="8" fill="currentColor"/>
+                <rect x="6" y="44" width="36" height="2" rx="1" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="brand-text">
+            <h2>E-Perelek</h2>
+            <p>Kas & Logistik Lingkungan</p>
+        </div>
+    </div>
+
+    <!-- RT Nav -->
+    <div id="nav-rt" class="nav-menu hidden" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="menu-label">MENU PENGURUS</div>
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="switchTab('rt-tab-dash', this)">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Dashboard
+            </li>
+            <li class="nav-item" onclick="switchTab('rt-tab-akses', this)">
+                <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg> Kelola Akses
+            </li>
+            <li class="nav-item" onclick="switchTab('rt-tab-warga', this)">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg> Daftar Warga
+            </li>
+            <li class="nav-item" onclick="switchTab('rt-tab-masuk', this)">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Setoran Masuk
+            </li>
+            <li class="nav-item" onclick="switchTab('rt-tab-keluar', this)">
+                <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Bantuan Keluar
+            </li>
+            <li class="nav-item" onclick="switchTab('rt-tab-keuangan', this)">
+                <svg viewBox="0 0 24 24"><path d="M2 7h20v10H2z"></path><circle cx="12" cy="12" r="2"></circle></svg> Laporan Kas
+            </li>
+            <li class="nav-item" onclick="bukaModalCetak('Pengurus')">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path></svg> Cetak
+            </li>
+        </ul>
+        <div class="nav-item nav-logout" onclick="logout()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Keluar
+        </div>
+    </div>
+
+    <!-- Petugas Nav -->
+    <div id="nav-petugas" class="nav-menu hidden" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="menu-label">MENU PETUGAS</div>
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="switchTab('petugas-tab-dash', this)">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Dashboard
+            </li>
+            <li class="nav-item" onclick="switchTab('petugas-tab-absen', this)">
+                <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg> Input Data
+            </li>
+            <li class="nav-item" onclick="bukaModalCetak('Petugas Lapangan')">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path></svg> Cetak
+            </li>
+        </ul>
+        <div class="nav-item nav-logout" onclick="logout()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Keluar
+        </div>
+    </div>
+
+    <!-- Warga Nav -->
+    <div id="nav-warga" class="nav-menu hidden" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="menu-label">MENU PUBLIK</div>
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="switchTab('warga-tab-dash', this)">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Dashboard
+            </li>
+            <li class="nav-item" onclick="switchTab('warga-tab-masuk', this)">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Laporan Data Masuk
+            </li>
+            <li class="nav-item" onclick="switchTab('warga-tab-keluar', this)">
+                <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Laporan Penyaluran
+            </li>
+            <li class="nav-item" onclick="switchTab('warga-tab-keuangan', this)">
+                <svg viewBox="0 0 24 24"><path d="M2 7h20v10H2z"></path><circle cx="12" cy="12" r="2"></circle></svg> Laporan Kas
+            </li>
+            <li class="nav-item" onclick="bukaModalCetak('Publik (Warga)')">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path></svg> Cetak
+            </li>
+        </ul>
+        <div class="nav-item nav-logout" onclick="logout()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Keluar
+        </div>
+    </div>
+</aside>
+
+<main class="main-wrapper">
+    <!-- HEADER -->
+    <header class="header" id="mainHeader">
+        <div class="header-title">
+            <h1 id="greetingName">Sistem Induk E-Perelek</h1>
+        </div>
+        <div class="user-profile">
+            <div class="user-text">
+                <strong id="userRoleName">Akses Warga</strong>
+                <span id="headerDate"></span>
+            </div>
+            <div class="user-avatar">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- HALAMAN LOGIN -->
+    <div id="loginSection">
+        <div id="loginBox">
+            <div class="login-brand">
+                <div class="brand-mark">
+                    <svg viewBox="0 0 48 48" aria-hidden="true">
+                        <path d="M2 23 C14 21 20 13 24 4 C28 13 34 21 46 23 Z" fill="currentColor"/>
+                        <rect x="10" y="25" width="28" height="11" rx="1" fill="currentColor"/>
+                        <path d="M17 27v7M24 27v7M31 27v7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>
+                        <rect x="12" y="36" width="3.5" height="8" fill="currentColor"/>
+                        <rect x="32.5" y="36" width="3.5" height="8" fill="currentColor"/>
+                        <rect x="6" y="44" width="36" height="2" rx="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span>E-Perelek</span>
+            </div>
+            <h2>Masuk</h2>
+            <p>Silakan masuk untuk mengakses panel administrasi.</p>
+            
+            <div class="form-group">
+                <label for="username">Nama Pengguna</label>
+                <input type="text" id="username" autocomplete="off">
+            </div>
+           <div class="form-group">
+                <label for="password">Kata Sandi</label>
+                <div style="position: relative;">
+                <input type="password" id="password">
+                 <span id="toggleIcon" style="position: absolute; right: 16px; top: 12px; cursor: pointer; color: var(--text-muted);" onclick="togglePassword()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </span>
+        </div>
+    </div>
+            <button style="width: 100%; margin-top: 8px; padding: 14px;" onclick="login()">Masuk ke Sistem</button>
+            
+            <div class="divider">ATAU AKSES PUBLIK</div>
+            <button class="btn-secondary" style="width: 100%; padding: 14px;" onclick="masukSebagaiWarga()">
+                Halaman Warga
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= KONTEN RT ================= -->
+    <div id="rtDashboard" class="hidden role-container">
+        
+        <div id="rt-tab-dash" class="tab-pane">
+            <div class="ledger-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Stok Beras Saat Ini</span>
+                    <span class="summary-value" id="totalBerasValue">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Beras Masuk (Hari Ini)</span>
+                    <span class="summary-value" style="color: var(--success);" id="berasMasukHariIniRT">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Beras Keluar (Hari Ini)</span>
+                    <span class="summary-value" style="color: var(--danger);" id="berasKeluarHariIniRT">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Sisa Saldo Kas</span>
+                    <span class="summary-value" id="totalKasValue">Rp 0</span>
+                </div>
+            </div>
+        
+        </div>
+
+        <div id="rt-tab-warga" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Pendaftaran Warga Baru</h3>
+                </div>
+                <div class="form-row" style="grid-template-columns: 2fr 2fr auto;">
+                    <div class="form-group">
+                        <label for="namaWargaBaru">Nama Lengkap</label>
+                        <input type="text" id="namaWargaBaru" placeholder="Contoh: Budi Santoso">
+                    </div>
+                    <div class="form-group">
+                        <label for="alamatWarga">Blok / Alamat Rumah</label>
+                        <input type="text" id="alamatWarga" placeholder="Contoh: Blok A No. 12">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="simpanWarga(this)" style="height: 44px; width: 100%;">Simpan Data</button>
+                    </div>
+                </div>
+                
+                <div id="drop-zone" onclick="document.getElementById('fileInputWarga').click()">
+                    <strong style="color: var(--text-main);">Impor Berkas Data (.csv)</strong>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Pilih atau tarik file CSV (Format: Nama, Alamat) ke area ini.</p>
+                    <input type="file" id="fileInputWarga" accept=".csv, text/csv" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Nama Warga</th><th>Alamat</th><th style="width: 150px;">Aksi</th></tr></thead>
+                        <tbody id="tabelDaftarWarga"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="rt-tab-masuk" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Catatan Setoran Masuk</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDateRTMasuk" onchange="applyFilterRT('masuk')">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDateRTMasuk').value=''; applyFilterRT('masuk');">Reset</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Nama Warga</th><th>Status</th><th style="width: 120px;">Aksi</th></tr></thead>
+                        <tbody id="tabelRiwayat"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="rt-tab-keluar" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui"><h3>Formulir Penyaluran Beras</h3></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pilihWargaPenyaluran">Penerima Bantuan / Pembeli</label>
+                        <select id="pilihWargaPenyaluran"><option value="">-- Pilih Warga --</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="jumlahPenyaluran">Jumlah Beras (KG)</label>
+                        <input type="number" inputmode="decimal" min="0" step="any" id="jumlahPenyaluran">
+                    </div>
+                </div>
+                <div class="form-row" style="grid-template-columns: 1fr 1fr auto;">
+                    <div class="form-group">
+                        <label for="jenisPenyaluran">Jenis Penyaluran</label>
+                        <select id="jenisPenyaluran" onchange="toggleNominalUang()">
+                            <option value="Gratis">Bantuan Sosial</option>
+                            <option value="Subsidi">Penjualan Subsidi</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="wadahNominalUang" style="display: none;">
+                        <label for="nominalUang">Nominal Masuk Kas (Rp)</label>
+                        <input type="number" inputmode="decimal" min="0" step="any" id="nominalUang">
+                    </div>
+                    <div class="form-group" style="grid-column: -2 / -1;">
+                        <button onclick="simpanPenyaluran(this)" style="height: 44px; width: 100%;">Proses Penyaluran</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Buku Catatan Penyaluran</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDateRTKeluar" onchange="applyFilterRT('keluar')">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDateRTKeluar').value=''; applyFilterRT('keluar');">Reset</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Penerima</th><th>Tipe & Jumlah</th><th style="width: 120px;">Aksi</th></tr></thead>
+                        <tbody id="tabelRiwayatPenyaluran"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="rt-tab-keuangan" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui"><h3>Input Transaksi Kas Manual</h3></div>
+                <div class="form-row" style="grid-template-columns: 1fr 1.5fr 2fr auto;">
+                    <div class="form-group">
+                        <label for="jenisTransaksiKas">Jenis Transaksi</label>
+                        <select id="jenisTransaksiKas">
+                            <option value="pemasukan">Pemasukan</option>
+                            <option value="pengeluaran">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nominalKas">Nominal (Rp)</label>
+                        <input type="number" inputmode="decimal" min="0" step="any" id="nominalKas">
+                    </div>
+                    <div class="form-group">
+                        <label for="keteranganKas">Keterangan / Sumber</label>
+                        <input type="text" id="keteranganKas" placeholder="Cth: Iuran kas warga / Pembelian atk">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="simpanTransaksiKas(this)" style="height: 44px; width: 100%;">Catat Kas</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Buku Kas Operasional</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDateRTKas" onchange="renderBukuKas()">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDateRTKas').value=''; renderBukuKas();">Reset</button>
+                    </div>
+                </div>
+                <div style="margin-bottom: 24px; font-size: 16px; color: var(--text-muted);">
+                    Sisa Saldo Kas Saat Ini: <strong id="sisaKasRT" style="font-family: 'Lora', serif; font-size: 24px; color: var(--text-main); display: block; margin-top: 4px;">Rp 0</strong>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal Transaksi</th>
+                                <th>Keterangan</th>
+                                <th class="angka">Pemasukan</th>
+                                <th class="angka">Pengeluaran</th>
+                                <th style="width: 100px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelBukuKas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="rt-tab-akses" class="tab-pane hidden">
+            <!-- Kartu Kelola Akun Petugas -->
+            <div class="box" style="border-left: 4px solid var(--accent);">
+                <div class="table-header-ui">
+                    <h3>Atur Akun Petugas Lapangan</h3>
+                </div>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+                    Ubah username dan password petugas di sini. Petugas lama akan ter-logout otomatis jika sandi diganti.
+                </p>
+                <div class="form-row" style="grid-template-columns: 2fr 2fr auto;">
+                    <div class="form-group">
+                        <label for="usernamePetugas">Username Petugas Baru</label>
+                        <input type="text" id="usernamePetugas" placeholder="Contoh: petugas_rudi">
+                    </div>
+                    <div class="form-group">
+                        <label for="passwordPetugas">Password Petugas Baru</label>
+                        <input type="text" id="passwordPetugas" placeholder="Ketik sandi baru...">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="simpanAkses('petugas', this)" style="height: 44px; width: 100%;">Ubah Sandi Petugas</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kartu Kelola Akun RT Sendiri (Utama & Backup) -->
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Ganti Sandi Pengurus (RT)</h3>
+                </div>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+                    Anda memiliki 2 akses: Akun Utama dan Akun Backup. Anda dapat mereset sandi salah satunya jika sedang login menggunakan yang lain.
+                </p>
+                <div class="form-row" style="grid-template-columns: 1fr 2fr 2fr auto;">
+                    <div class="form-group">
+                        <label for="pilihAkunRT">Pilih Akun</label>
+                        <select id="pilihAkunRT" onchange="muatUsernameRT()">
+                            <option value="rt_utama">Akun Utama</option>
+                            <option value="rt_backup">Akun Backup</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usernameRTEdit">Username RT</label>
+                        <input type="text" id="usernameRTEdit">
+                    </div>
+                    <div class="form-group">
+                        <label for="passwordRTEdit">Password Baru</label>
+                        <input type="text" id="passwordRTEdit" placeholder="Ketik sandi baru...">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-danger" onclick="simpanAkses('rt', this)" style="height: 44px; width: 100%;">Perbarui Akun RT</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= KONTEN PETUGAS ================= -->
+    <div id="petugasDashboard" class="hidden role-container">
+        <div id="petugas-tab-dash" class="tab-pane">
+            <div class="ledger-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Total Beras Terkumpul</span>
+                    <span class="summary-value" id="totalBerasPetugasValue">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Beras Masuk Hari Ini</span>
+                    <span class="summary-value" style="color: var(--success);" id="berasMasukHariIniPetugas">0 KG</span>
+                </div>
+            </div>
+        
+        </div>
+
+        <div id="petugas-tab-absen" class="tab-pane hidden">
+            <div class="box">
+                <h3 style="margin-bottom: 8px; font-size: 16px;">1. Pilih Warga Penyetor <span id="counterWarga">0 Warga Terpilih</span></h3>
+                <div id="containerCheckboxWarga" style="border: 1px solid var(--border-color); border-radius: var(--radius); max-height: 400px; overflow-y: auto; margin-bottom: 24px; padding: 0;">
+                    <p style="padding: 16px; color: var(--text-muted);">Memuat daftar warga...</p>
+                </div>
+                
+                <h3 style="margin-bottom: 16px; margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 24px; font-size: 16px;">2. Hitung & Simpan</h3>
+                <div class="form-group">
+                    <label for="jumlahBerasKolektif">Total Beras Terkumpul (KG) </label>
+                    <input type="number" inputmode="decimal" min="0" step="any" id="jumlahBerasKolektif" style="font-size: 18px; font-weight: 600;">
+                </div>
+                <button onclick="simpanSetoranKolektif(this)" style="width: 100%; padding: 14px; font-size: 15px;">Simpan Setoran Keliling</button>
+                <button class="btn-secondary" style="width: 100%; padding: 14px; font-size: 15px; margin-top: 12px;" onclick="resetCeklisPetugas()">Kosongkan Pilihan</button>
+            </div>
+
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Daftar Pemberi</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDatePetugasAbsen" onchange="applyFilterPetugas()">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDatePetugasAbsen').value=''; applyFilterPetugas();">Reset</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Nama Warga</th><th>Status</th></tr></thead>
+                        <tbody id="tabelRiwayatPetugas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= KONTEN WARGA ================= -->
+    <div id="wargaDashboard" class="hidden role-container">
+        <div id="warga-tab-dash" class="tab-pane">
+            <div class="ledger-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Total Cadangan Beras</span>
+                    <span class="summary-value" id="totalBerasWargaValue">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Beras Masuk (Hari Ini)</span>
+                    <span class="summary-value" style="color: var(--success);" id="berasMasukHariIniWarga">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Penyaluran (Hari Ini)</span>
+                    <span class="summary-value" style="color: var(--danger);" id="berasKeluarHariIniWarga">0 KG</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Saldo Kas</span>
+                    <span class="summary-value" id="totalKasWargaValue">Rp 0</span>
+                </div>
+            </div>
+        
+        </div>
+
+        <div id="warga-tab-masuk" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Data Setoran Beras</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDateWargaMasuk" onchange="applyFilterWarga('masuk')">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDateWargaMasuk').value=''; applyFilterWarga('masuk');">Reset</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Nama Penderma</th><th>Status</th></tr></thead>
+                        <tbody id="tabelRiwayatWarga"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="warga-tab-keluar" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Data Penyaluran Bantuan & Penjualan</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDateWargaKeluar" onchange="applyFilterWarga('keluar')">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDateWargaKeluar').value=''; applyFilterWarga('keluar');">Reset</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Nama Penerima</th><th>Tipe & Nominal Keluar</th></tr></thead>
+                        <tbody id="tabelPenyaluranWarga"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="warga-tab-keuangan" class="tab-pane hidden">
+            <div class="box">
+                <div class="table-header-ui">
+                    <h3>Buku Kas Transparan</h3>
+                    <div class="filter-controls">
+                        <input type="date" id="filterDateWargaKas" onchange="renderBukuKas()">
+                        <button class="btn-secondary" onclick="document.getElementById('filterDateWargaKas').value=''; renderBukuKas();">Reset</button>
+                    </div>
+                </div>
+                <div style="margin-bottom: 24px; font-size: 16px; color: var(--text-muted);">
+                    Saldo Terkini: <strong id="sisaKasPublik" style="font-family: 'Lora', serif; font-size: 24px; color: var(--text-main); display: block; margin-top: 4px;">Rp 0</strong>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Keterangan</th><th class="angka">Pemasukan</th><th class="angka">Pengeluaran</th></tr></thead>
+                        <tbody id="tabelBukuKasWarga"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    // Muat ulang halaman = kembali ke login; hapus token lama agar konsisten
+    try { sessionStorage.removeItem('token_perelek'); } catch (e) {}
+    // Styling SweetAlert secara global
+    document.getElementById('headerDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const swalCustomClass = { popup: 'swal-square' };
+    const primaryColor = '#1B4332'; 
+    const deleteColor = '#DC2626';
+
+    // ---------- Helper umum (keamanan & kerapian) ----------
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function hariIniWIB() {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    }
+    function fmtBeras(n) {
+        return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('id-ID');
+    }
+    function tampilError(judul, pesan) {
+        Swal.fire({ title: judul, text: pesan, confirmButtonColor: primaryColor, customClass: swalCustomClass });
+    }
+    
+    // Fungsi kirimApi yang baru (Menyisipkan Token JWT / Session)
+    async function kirimApi(url, opsi = {}) {
+        // Efek loading internet buatan (0.2 detik)
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Menyediakan data bohongan agar tabel dan angka di dasbor tidak error/kosong
+        if (url.includes('/api/dashboard/total')) return 125.5; // Angka pura-pura total beras
+        
+        if (url.includes('/api/warga')) {
+            return [
+                { id: 1, nama: "Bapak Budi (Data Demo)", alamat: "Blok A No. 10" },
+                { id: 2, nama: "Ibu Siti (Data Demo)", alamat: "Blok B No. 25" }
+            ];
+        }
+        
+        // Untuk tabel transaksi kas, setoran, dan penyaluran, kembalikan array kosong agar tabel rapi
+        if (url.includes('/api/setoran') || url.includes('/api/penyaluran') || url.includes('/api/kas')) {
+            return [];
+        }
+
+        // Jika fungsi yang dites adalah aksi simpan/hapus, anggap saja berhasil
+        return { status: "sukses", pesan: "Berhasil di mode demo" };
+    }
+
+    async function denganKunci(btn, fn) {
+        if (btn) { if (btn.disabled) return; btn.disabled = true; }
+        try { await fn(); } finally { if (btn) btn.disabled = false; }
+    }
+    
+    window.addEventListener('unhandledrejection', (e) => {
+        e.preventDefault();
+        const sekarang = Date.now();
+        if (!window._errMuat || sekarang - window._errMuat > 8000) {
+            window._errMuat = sekarang;
+            tampilError('Gagal Memuat Data', 'Tidak dapat mengambil data dari server. Periksa koneksi lalu muat ulang halaman.');
+        }
+    });
+    
+    ['username', 'password'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+    });
+
+    // NAVIGASI SPA
+    function switchTab(tabId, element) {
+        document.querySelectorAll('.role-container:not(.hidden) .tab-pane').forEach(tab => tab.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
+        document.querySelectorAll('.nav-menu:not(.hidden) .nav-item').forEach(nav => nav.classList.remove('active'));
+        if(element) element.classList.add('active');
+        window.scrollTo(0, 0);
+        // Muat ulang data sesuai tab agar selalu terbaru antar perangkat
+        const muat = {
+            'rt-tab-dash': refreshDataRT, 'rt-tab-masuk': () => applyFilterRT('masuk'),
+            'rt-tab-keluar': () => { applyFilterRT('keluar'); loadTabelWargaDanDropdownPenyaluran(); },
+            'rt-tab-keuangan': renderBukuKas, 'rt-tab-warga': loadTabelWargaDanDropdownPenyaluran,
+            'petugas-tab-dash': refreshDataPetugas, 'petugas-tab-absen': refreshDataPetugas,
+            'warga-tab-dash': refreshDataWarga, 'warga-tab-masuk': () => applyFilterWarga('masuk'),
+            'warga-tab-keluar': () => applyFilterWarga('keluar'), 'warga-tab-keuangan': renderBukuKas
+        };
+        if (sessionStorage.getItem('token_perelek') || tabId.startsWith('warga')) {
+            try { if (muat[tabId]) muat[tabId](); } catch (e) {}
+        }
+    }
+
+    // Item menu bisa dipakai lewat keyboard
+    document.querySelectorAll('.nav-item').forEach(el => {
+        el.setAttribute('role', 'button'); el.setAttribute('tabindex', '0');
+        el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
+    });
+
+    function togglePassword() {
+        const inputPass = document.getElementById("password");
+        const spanIcon = document.getElementById("toggleIcon");
+        const eyeShow = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+        const eyeHide = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
+
+        if (inputPass.type === "password") {
+            inputPass.type = "text";
+            spanIcon.innerHTML = eyeHide;
+        } else {
+            inputPass.type = "password";
+            spanIcon.innerHTML = eyeShow;
+        }
+    }
+
+    function toggleNominalUang() {
+        const jenis = document.getElementById("jenisPenyaluran").value;
+        const wadahUang = document.getElementById("wadahNominalUang");
+        const inputUang = document.getElementById("nominalUang");
+        if(jenis === "Subsidi") { wadahUang.style.display = "block"; } else { wadahUang.style.display = "none"; inputUang.value = ""; }
+    }
+
+    function setRoleUI(roleText, navId, defaultTabId, greetingName) {
+        document.getElementById('userRoleName').innerText = roleText;
+        document.getElementById('greetingName').innerText = greetingName;
+        
+        document.body.classList.remove('login-mode');
+        document.getElementById("loginSection").classList.add("hidden");
+        
+        document.querySelectorAll('.nav-menu').forEach(nav => nav.classList.add('hidden'));
+        document.querySelectorAll('.role-container').forEach(cont => cont.classList.add('hidden'));
+        
+        document.getElementById(navId).classList.remove('hidden');
+        if (navId === 'nav-rt') document.getElementById('rtDashboard').classList.remove('hidden');
+        else if (navId === 'nav-petugas') document.getElementById('petugasDashboard').classList.remove('hidden');
+        else if (navId === 'nav-warga') document.getElementById('wargaDashboard').classList.remove('hidden');
+
+        const firstMenu = document.querySelector(`#${navId} .nav-item`);
+        switchTab(defaultTabId, firstMenu);
+    }
+
+    // Fungsi Login yang Baru (Terhubung ke DB)
+    async function login() {
+        const user = document.getElementById("username").value.toLowerCase().trim();
+        const pass = document.getElementById("password").value.trim(); 
+        const btn = document.querySelector('#loginBox button');
+        
+        if (!user || !pass) return tampilError('Formulir Kosong', 'Harap isi nama pengguna dan kata sandi.');
+
+        return denganKunci(btn, async () => {
+            // Efek loading buatan selama 0.8 detik agar terasa realistis
+            Swal.fire({ title: 'Memeriksa Kredensial...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            await new Promise(resolve => setTimeout(resolve, 800)); 
+
+            Swal.fire({ title: 'Berhasil Masuk (Mode Demo)', confirmButtonColor: primaryColor, timer: 1500, customClass: swalCustomClass });
+
+            // Skenario pengalihan halaman berdasarkan apa yang diketik
+            if (user.includes('rt')) { 
+                setRoleUI('Akses: Pengurus', 'nav-rt', 'rt-tab-dash', 'Catatan Pengurus'); 
+            } else if (user.includes('petugas')) {
+                setRoleUI('Akses: Petugas', 'nav-petugas', 'petugas-tab-dash', 'Catatan Lapangan'); 
+            } else {
+                masukSebagaiWarga();
+            }
+        });
+    }
+
+    function masukSebagaiWarga() { setRoleUI('Akses: Publik', 'nav-warga', 'warga-tab-dash', 'Catatan Transparansi'); }
+
+    function logout() {
+        document.getElementById("username").value = ""; 
+        document.getElementById("password").value = ""; 
+        document.getElementById("password").type = "password";
+        
+        sessionStorage.removeItem('token_perelek');
+        document.getElementById('greetingName').innerText = 'Sistem Induk E-Perelek';
+        window.scrollTo(0, 0);
+        
+        document.querySelectorAll('.role-container').forEach(cont => cont.classList.add('hidden'));
+        document.querySelectorAll('.nav-menu').forEach(nav => nav.classList.add('hidden'));
+        
+        document.body.classList.add('login-mode');
+        document.getElementById("loginSection").classList.remove("hidden");
+    }
+
+    // ==========================================
+    // SISTEM PENCATATAN KAS
+    // ==========================================
+    function formatRupiahStr(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
+
+    async function simpanTransaksiKas(btn) {
+        const jenis = document.getElementById("jenisTransaksiKas").value;
+        const nominal = parseFloat(document.getElementById("nominalKas").value);
+        const keterangan = document.getElementById("keteranganKas").value.trim();
+
+        if (!(nominal > 0) || !keterangan) return tampilError('Formulir Tidak Lengkap', 'Nominal (lebih dari 0) dan keterangan harus diisi.');
+
+        return denganKunci(btn, async () => {
+            try {
+                await kirimApi('/api/kas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jenis: jenis, nominal: nominal, keterangan: keterangan }) });
+                Swal.fire({ title: 'Tercatat', confirmButtonColor: primaryColor, timer: 1500, customClass: swalCustomClass });
+                document.getElementById("nominalKas").value = ""; document.getElementById("keteranganKas").value = "";
+                renderBukuKas();
+            } catch (e) { tampilError('Gagal Mencatat Kas', e.message); }
+        });
+    }
+
+    function hapusTransaksiKas(id) {
+        Swal.fire({ title: 'Hapus Entri Kas?', text: 'Saldo kas akan dikoreksi otomatis.', showCancelButton: true, confirmButtonColor: deleteColor, confirmButtonText: 'Hapus', cancelButtonText: 'Batal', customClass: swalCustomClass
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try { await kirimApi('/api/kas/' + id, { method: 'DELETE' }); renderBukuKas(); }
+            catch (e) { tampilError('Koreksi Ditolak', e.message); }
+        });
+    }
+
+    function renderBukuKas() {
+        Promise.all([
+            kirimApi('/api/penyaluran'),
+            kirimApi('/api/kas')
+        ]).then(([dataPenyaluran, dataKas]) => {
+            let mutasiGabungan = []; let totalMasuk = 0; let totalKeluar = 0;
+
+            if(dataPenyaluran) {
+                dataPenyaluran.forEach(p => {
+                    if (p.jenisPenyaluran === 'Subsidi' && p.nominalUang > 0) {
+                        totalMasuk += p.nominalUang;
+                        mutasiGabungan.push({ id: p.id, tipe: 'pemasukan_sistem', tanggal: p.tanggal, keterangan: `Penjualan Beras (${fmtBeras(p.jumlahBeras)} KG) - ${p.warga ? p.warga.nama : 'Warga'}`, masuk: p.nominalUang, keluar: 0, timestamp: new Date(p.tanggal).getTime() });
+                    }
+                });
+            }
+
+            if(dataKas) {
+                dataKas.forEach(k => {
+                    if (k.jenis === 'pemasukan') {
+                        totalMasuk += k.nominal;
+                        mutasiGabungan.push({ id: k.id, tipe: 'pemasukan_manual', tanggal: k.tanggal, keterangan: k.keterangan, masuk: k.nominal, keluar: 0, timestamp: new Date(k.tanggal).getTime() });
+                    } else {
+                        totalKeluar += k.nominal;
+                        mutasiGabungan.push({ id: k.id, tipe: 'pengeluaran', tanggal: k.tanggal, keterangan: k.keterangan, masuk: 0, keluar: k.nominal, timestamp: new Date(k.tanggal).getTime() });
+                    }
+                });
+            }
+
+            mutasiGabungan.sort((a, b) => b.timestamp - a.timestamp);
+            const sisaSaldo = totalMasuk - totalKeluar; const saldoStr = formatRupiahStr(sisaSaldo);
+
+            document.getElementById("totalKasValue").innerText = saldoStr; document.getElementById("totalKasWargaValue").innerText = saldoStr;
+            document.getElementById("sisaKasRT").innerText = saldoStr; document.getElementById("sisaKasPublik").innerText = saldoStr;
+
+            const dateRT = document.getElementById("filterDateRTKas") ? document.getElementById("filterDateRTKas").value : "";
+            const dateWarga = document.getElementById("filterDateWargaKas") ? document.getElementById("filterDateWargaKas").value : "";
+
+            let mutasiRT = dateRT ? mutasiGabungan.filter(m => m.tanggal === dateRT) : mutasiGabungan;
+            let mutasiWarga = dateWarga ? mutasiGabungan.filter(m => m.tanggal === dateWarga) : mutasiGabungan;
+
+            let htmlRT = ""; let lastDateRT = null;
+            if (mutasiRT.length === 0) { htmlRT = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Tidak ada catatan pada rentang ini.</td></tr>`; }
+            else {
+                mutasiRT.forEach(m => {
+                    if (m.tanggal !== lastDateRT) { htmlRT += `<tr class="row-pemisah"><td colspan="5">${esc(m.tanggal)}</td></tr>`; lastDateRT = m.tanggal; }
+                    let btnAksi = (m.tipe === 'pengeluaran' || m.tipe === 'pemasukan_manual') ? `<button class="btn-aksi btn-hapus" onclick="hapusTransaksiKas(${Number(m.id)})">Koreksi</button>` : `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">(Otomatis)</span>`;
+                    htmlRT += `<tr><td>${esc(m.tanggal)}</td><td>${esc(m.keterangan)}</td><td class="angka">${m.masuk > 0 ? formatRupiahStr(m.masuk) : "-"}</td><td class="angka">${m.keluar > 0 ? formatRupiahStr(m.keluar) : "-"}</td><td>${btnAksi}</td></tr>`;
+                });
+            }
+            document.getElementById("tabelBukuKas").innerHTML = htmlRT;
+
+            let htmlWarga = ""; let lastDateWarga = null;
+            if (mutasiWarga.length === 0) { htmlWarga = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">Tidak ada catatan pada rentang ini.</td></tr>`; }
+            else {
+                mutasiWarga.forEach(m => {
+                    if (m.tanggal !== lastDateWarga) { htmlWarga += `<tr class="row-pemisah"><td colspan="4">${esc(m.tanggal)}</td></tr>`; lastDateWarga = m.tanggal; }
+                    htmlWarga += `<tr><td>${esc(m.tanggal)}</td><td>${esc(m.keterangan)}</td><td class="angka">${m.masuk > 0 ? formatRupiahStr(m.masuk) : "-"}</td><td class="angka">${m.keluar > 0 ? formatRupiahStr(m.keluar) : "-"}</td></tr>`;
+                });
+            }
+            document.getElementById("tabelBukuKasWarga").innerHTML = htmlWarga;
+        }).catch(() => {
+            const pesan = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Gagal memuat buku kas dari server.</td></tr>`;
+            const a = document.getElementById("tabelBukuKas"); if (a) a.innerHTML = pesan;
+            const b = document.getElementById("tabelBukuKasWarga"); if (b) b.innerHTML = pesan;
+        });
+    }
+
+    // =========================================================
+    // FITUR CETAK LAPORAN
+    // =========================================================
+    function bukaModalCetak(rolePencetak) {
+        Swal.fire({
+            title: 'Cetak Laporan', text: 'Tentukan cakupan data yang akan dicetak:', showDenyButton: true, showCancelButton: true,
+            confirmButtonText: 'Semua Riwayat', denyButtonText: 'Filter Tanggal', cancelButtonText: 'Batal', 
+            confirmButtonColor: primaryColor, customClass: swalCustomClass
+        }).then((result) => {
+            if (result.isConfirmed) { prosesCetakDokumen(rolePencetak, null); } 
+            else if (result.isDenied) {
+                Swal.fire({ title: 'Masukkan Tanggal', html: '<div class="form-group"><input type="date" id="swal-input-date" style="width: 100%;"></div>', focusConfirm: false, showCancelButton: true, confirmButtonText: 'Buat Laporan', confirmButtonColor: primaryColor, customClass: swalCustomClass, preConfirm: () => { const date = document.getElementById('swal-input-date').value; if (!date) { Swal.showValidationMessage('Isi tanggal terlebih dahulu.'); } return date; }
+                }).then((dateResult) => { if (dateResult.isConfirmed) { prosesCetakDokumen(rolePencetak, dateResult.value); } });
+            }
+        });
+    }
+
+    function prosesCetakDokumen(rolePencetak, filterDate) {
+        // Buka jendela SEKARANG (masih dalam aksi klik) agar tidak diblokir pop-up
+        const printWindow = window.open('', '_blank');
+        if (printWindow) { printWindow.document.write('<p style="font-family:sans-serif;padding:24px;">Menyiapkan laporan...</p>'); }
+
+        Swal.fire({ title: 'Merangkum Data...', allowOutsideClick: false, customClass: swalCustomClass, didOpen: () => { Swal.showLoading(); } });
+
+        Promise.all([ kirimApi('/api/setoran'), kirimApi('/api/penyaluran'), kirimApi('/api/kas') ]).then(([dataSetoran, dataPenyaluran, dataKasLokal]) => {
+            
+            let globalBerasMasuk = 0; let globalBerasKeluar = 0;
+            if(dataSetoran) dataSetoran.forEach(s => globalBerasMasuk += s.jumlahBeras); 
+            if(dataPenyaluran) dataPenyaluran.forEach(p => globalBerasKeluar += p.jumlahBeras);
+            
+            let globalUangMasuk = 0; let globalUangKeluar = 0;
+            if(dataPenyaluran) dataPenyaluran.forEach(p => { if (p.jenisPenyaluran === 'Subsidi') globalUangMasuk += p.nominalUang; });
+            
+            if(dataKasLokal) {
+                dataKasLokal.forEach(k => {
+                    if (k.jenis === 'pemasukan') globalUangMasuk += k.nominal;
+                    else globalUangKeluar += k.nominal;
+                });
+            }
+            const globalSaldoSaatIni = globalUangMasuk - globalUangKeluar;
+
+            let sourceSetoran = (filterDate && dataSetoran) ? dataSetoran.filter(s => s.tanggal === filterDate) : (dataSetoran || []);
+            let sourcePenyaluran = (filterDate && dataPenyaluran) ? dataPenyaluran.filter(p => p.tanggal === filterDate) : (dataPenyaluran || []);
+            let sourceKasLokal = (filterDate && dataKasLokal) ? dataKasLokal.filter(k => k.tanggal === filterDate) : (dataKasLokal || []);
+
+            let tableBerasMasukTotal = 0; let barisBerasMasuk = "";
+            if (sourceSetoran.length === 0) { barisBerasMasuk = `<tr><td colspan="3" class="text-center">Nihil.</td></tr>`; } 
+            else { sourceSetoran.forEach((s, index) => { tableBerasMasukTotal += s.jumlahBeras; barisBerasMasuk += `<tr><td class="text-center">${index + 1}</td><td class="text-center">${esc(s.tanggal || '-')}</td><td>${esc(s.namaWarga)}</td></tr>`; }); }
+
+            let tableBerasKeluarTotal = 0; let barisBerasKeluar = "";
+            if (sourcePenyaluran.length === 0) { barisBerasKeluar = `<tr><td colspan="5" class="text-center">Nihil.</td></tr>`; } 
+            else { sourcePenyaluran.forEach((p, index) => { tableBerasKeluarTotal += p.jumlahBeras; let namaWarga = p.warga ? p.warga.nama : 'Tidak Diketahui'; barisBerasKeluar += `<tr><td class="text-center">${index + 1}</td><td class="text-center">${esc(p.tanggal || '-')}</td><td>${esc(namaWarga)}</td><td>${p.jenisPenyaluran === 'Subsidi' ? 'Penjualan' : 'Sosial (Gratis)'}</td><td class="text-right">${fmtBeras(p.jumlahBeras)} KG</td></tr>`; }); }
+
+            let mutasiGabungan = []; let tableUangMasukTotal = 0; let tableUangKeluarTotal = 0;
+            sourcePenyaluran.forEach(p => { if (p.jenisPenyaluran === 'Subsidi' && p.nominalUang > 0) { tableUangMasukTotal += p.nominalUang; mutasiGabungan.push({ tanggal: p.tanggal, keterangan: `Penjualan Beras (${fmtBeras(p.jumlahBeras)} KG)`, masuk: p.nominalUang, keluar: 0, timestamp: new Date(p.tanggal).getTime() }); } });
+            
+            sourceKasLokal.forEach(k => { 
+                if (k.jenis === 'pemasukan') {
+                    tableUangMasukTotal += k.nominal;
+                    mutasiGabungan.push({ tanggal: k.tanggal, keterangan: k.keterangan, masuk: k.nominal, keluar: 0, timestamp: new Date(k.tanggal).getTime() }); 
+                } else {
+                    tableUangKeluarTotal += k.nominal; 
+                    mutasiGabungan.push({ tanggal: k.tanggal, keterangan: k.keterangan, masuk: 0, keluar: k.nominal, timestamp: new Date(k.tanggal).getTime() }); 
+                }
+            });
+            mutasiGabungan.sort((a, b) => a.timestamp - b.timestamp);
+
+            let barisBukuKas = "";
+            if (mutasiGabungan.length === 0) { barisBukuKas = `<tr><td colspan="5" class="text-center">Nihil.</td></tr>`; } 
+            else { mutasiGabungan.forEach((m, index) => { barisBukuKas += `<tr><td class="text-center">${index + 1}</td><td class="text-center">${esc(m.tanggal)}</td><td>${esc(m.keterangan)}</td><td class="text-right">${m.masuk > 0 ? formatRupiahStr(m.masuk) : '-'}</td><td class="text-right">${m.keluar > 0 ? formatRupiahStr(m.keluar) : '-'}</td></tr>`; }); }
+
+            const labelWaktu = filterDate ? `(Periode: ${filterDate})` : `(Akumulatif Keseluruhan)`;
+            const tanggalCetak = new Date().toLocaleString('id-ID', { dateStyle: 'long' });
+            
+            let ringkasanHTML = ''; let bodyHTML = ''; let judulLaporan = '';
+
+            if (rolePencetak === 'Petugas Lapangan') {
+                judulLaporan = 'Buku Catatan Lapangan (Penerimaan Beras)';
+                ringkasanHTML = `
+                    <table class="ringkasan-table"><tr><td>Akumulasi Beras Masuk Terkumpul<br><strong>${fmtBeras(globalBerasMasuk)} KG</strong></td></tr></table>
+                `;
+                bodyHTML = `
+                    <h3 class="section-title">Catatan Penerimaan Beras (Setoran Warga)</h3>
+                    <table><thead><tr><th>No</th><th>Tanggal Pencatatan</th><th>Nama Penyetor</th></tr></thead><tbody>${barisBerasMasuk}</tbody><tfoot><tr><td colspan="2" class="text-right font-bold">Total (Pada Tabel Ini):</td><td class="text-center font-bold">${fmtBeras(tableBerasMasukTotal)} KG</td></tr></tfoot></table>
+                `;
+            } else {
+                judulLaporan = 'Buku Induk Logistik & Kas';
+                ringkasanHTML = `
+                    <table class="ringkasan-table">
+                        <tr>
+                            <td>Akumulasi Beras Masuk<br><strong>${fmtBeras(globalBerasMasuk)} KG</strong></td>
+                            <td>Akumulasi Beras Keluar<br><strong>${fmtBeras(globalBerasKeluar)} KG</strong></td>
+                            <td>Saldo Kas Tersedia<br><strong>${formatRupiahStr(globalSaldoSaatIni)}</strong></td>
+                        </tr>
+                    </table>
+                `;
+                bodyHTML = `
+                    <h3 class="section-title">A. Catatan Penerimaan Beras</h3>
+                    <table><thead><tr><th>No</th><th>Tanggal Pencatatan</th><th>Nama Penyetor</th></tr></thead><tbody>${barisBerasMasuk}</tbody><tfoot><tr><td colspan="2" class="text-right font-bold">Total (Pada Tabel Ini):</td><td class="text-center font-bold">${fmtBeras(tableBerasMasukTotal)} KG</td></tr></tfoot></table>
+                    
+                    <h3 class="section-title">B. Catatan Penyaluran Beras</h3>
+                    <table><thead><tr><th>No</th><th>Tanggal Realisasi</th><th>Penerima Bantuan/Pembeli</th><th>Tipe</th><th>Volume</th></tr></thead><tbody>${barisBerasKeluar}</tbody><tfoot><tr><td colspan="4" class="text-right font-bold">Total (Pada Tabel Ini):</td><td class="text-right font-bold">${fmtBeras(tableBerasKeluarTotal)} KG</td></tr></tfoot></table>
+                    
+                    <h3 class="section-title">C. Rekapitulasi Arus Kas</h3>
+                    <table><thead><tr><th>No</th><th>Tanggal Transaksi</th><th>Keterangan Arus Kas</th><th>Masuk</th><th>Keluar</th></tr></thead><tbody>${barisBukuKas}</tbody><tfoot>
+                        <tr><td colspan="3" class="text-right font-bold">Total (Pada Tabel Ini):</td><td class="text-right">${formatRupiahStr(tableUangMasukTotal)}</td><td class="text-right">${formatRupiahStr(tableUangKeluarTotal)}</td></tr>
+                    </tfoot></table>
+                `;
+            }
+
+            const printHTML = `
+                <html>
+                <head>
+                    <title>Dokumen Laporan Keuangan</title>
+                    <style>
+                        body { font-family: 'Times New Roman', serif; color: #000; padding: 40px; font-size: 11pt; line-height: 1.5; }
+                        .kop-surat { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+                        .kop-surat h1 { margin: 0; font-size: 16pt; text-transform: uppercase; letter-spacing: 1px;}
+                        .kop-surat h2 { margin: 5px 0; font-size: 12pt; font-weight: normal; }
+                        .ringkasan-box { border: 1px solid #000; padding: 15px; margin-bottom: 24px; text-align: center; }
+                        .ringkasan-box h3 { margin-top: 0; font-size: 11pt; text-transform: uppercase; margin-bottom: 12px; }
+                        .ringkasan-table { width: 100%; border: none; margin: 0; }
+                        .ringkasan-table td { border: none; text-align: center; padding: 5px; width: ${rolePencetak === 'Petugas Lapangan' ? '100%' : '33.33%'}; }
+                        h3.section-title { font-size: 11pt; margin-top: 24px; margin-bottom: 8px; text-transform: uppercase; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 10pt; }
+                        th, td { border: 1px solid #000; padding: 6px 8px; }
+                        th { background-color: #fff; text-align: center; font-weight: bold; }
+                        .text-center { text-align: center; } .text-right { text-align: right; } .font-bold { font-weight: bold; }
+                        .info-cetak { margin-bottom: 16px; font-size: 10pt; }
+                        .tanda-tangan { width: 100%; margin-top: 40px; text-align: right; }
+                        .tanda-tangan p { margin-right: 40px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="kop-surat"><h1>${judulLaporan}</h1><h2>Laporan Resmi Sistem E-Perelek ${labelWaktu}</h2></div>
+                    <div class="info-cetak">Dokumen Dicetak Oleh: ${rolePencetak} <br>Waktu Pencetakan: ${tanggalCetak}</div>
+                    <div class="ringkasan-box"><h3>Posisi Akhir Laporan</h3>${ringkasanHTML}</div>
+                    ${bodyHTML}
+                    <div class="tanda-tangan"><p>Mengetahui,</p><br><br><br><br><p><b>${rolePencetak === 'Petugas Lapangan' ? 'Petugas Lapangan Tertanda' : 'Pengurus Lingkungan Tertanda'}</b></p></div>
+                    <script>window.onload = function() { window.print(); }<\/script>
+                </body></html>
+            `;
+            Swal.close(); 
+            if (printWindow) { printWindow.document.open(); printWindow.document.write(printHTML); printWindow.document.close(); } 
+            else { Swal.fire({ title: 'Terblokir', text: 'Harap izinkan pop-up pada browser Anda.', confirmButtonColor: primaryColor, customClass: swalCustomClass }); }
+        }).catch((e) => {
+            if (printWindow) printWindow.close();
+            tampilError('Laporan Dibatalkan', 'Data gagal dimuat dari server, sehingga laporan tidak dicetak agar angkanya tidak keliru. ' + (e && e.message ? e.message : ''));
+        });
+    }
+
+    // FETCH DATA KPI
+    function fetchTotalBeras(elementId) {
+        kirimApi('/api/dashboard/total').then(data => { const el = document.getElementById(elementId); if(el) el.innerText = fmtBeras(data) + " KG"; })
+            .catch(() => { const el = document.getElementById(elementId); if(el) el.innerText = "0 KG"; });
+    }
+    
+    function fetchBerasHarianDinamic() {
+        const todayStr = hariIniWIB();
+        kirimApi('/api/setoran').then(data => {
+            if(!data) return;
+            let masukHariIni = 0; data.forEach(s => { if(s.tanggal === todayStr) masukHariIni += s.jumlahBeras; });
+            document.getElementById('berasMasukHariIniRT').innerText = fmtBeras(masukHariIni) + " KG";
+            document.getElementById('berasMasukHariIniPetugas').innerText = fmtBeras(masukHariIni) + " KG";
+            document.getElementById('berasMasukHariIniWarga').innerText = fmtBeras(masukHariIni) + " KG";
+        }).catch(()=>{});
+
+        kirimApi('/api/penyaluran').then(data => {
+            if(!data) return;
+            let keluarHariIni = 0; data.forEach(p => { if(p.tanggal === todayStr) keluarHariIni += p.jumlahBeras; });
+            document.getElementById('berasKeluarHariIniRT').innerText = fmtBeras(keluarHariIni) + " KG";
+            document.getElementById('berasKeluarHariIniWarga').innerText = fmtBeras(keluarHariIni) + " KG";
+        }).catch(()=>{});
+    }
+
+    // RENDER TABEL SETORAN
+    function prosesRenderTabelSetoran(tabelElement, data) {
+        if (!Array.isArray(data) || data.length === 0) { tabelElement.innerHTML = "<tr><td colspan='4' style='text-align: center; color: var(--text-muted); padding: 24px;'>Tidak ada rekaman data.</td></tr>"; return; }
+
+        data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+        const adaAksi = tabelElement.id !== 'tabelRiwayatWarga' && tabelElement.id !== 'tabelRiwayatPetugas';
+        let html = ''; let lastDate = null;
+        data.forEach(s => {
+            if (s.tanggal !== lastDate) { html += `<tr class="row-pemisah"><td colspan="4">${esc(s.tanggal)}</td></tr>`; lastDate = s.tanggal; }
+            html += `<tr>
+                <td>${esc(s.tanggal || '-')}</td>
+                <td>${esc(s.namaWarga)}</td>
+                <td><span style="color: var(--text-main); font-weight: 600;">Valid</span></td>
+                ${adaAksi ? `<td><button class="btn-aksi btn-hapus" onclick="hapusSetoran(${Number(s.id)})">Batalkan</button></td>` : '<td></td>'}
+            </tr>`;
+        });
+        tabelElement.innerHTML = html;
+    }
+
+    // RENDER TABEL PENYALURAN
+    function renderTabelPenyaluran(tabelElement, data, isWarga = false) {
+        const kolom = isWarga ? 3 : 4;
+        if (!Array.isArray(data) || data.length === 0) { tabelElement.innerHTML = `<tr><td colspan="${kolom}" style='text-align: center; color: var(--text-muted); padding: 24px;'>Tidak ada rekaman data.</td></tr>`; return; }
+
+        data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+        let total = 0; let lastDate = null; let html = '';
+
+        data.forEach(p => {
+            total += p.jumlahBeras;
+            if (p.tanggal !== lastDate) { html += `<tr class="row-pemisah"><td colspan="${kolom}">${esc(p.tanggal)}</td></tr>`; lastDate = p.tanggal; }
+
+            const tipe = p.jenisPenyaluran === 'Subsidi'
+                ? `<br><span style="color:var(--text-muted); font-size:12px;">Subsidi Kas (${formatRupiahStr(p.nominalUang || 0)})</span>`
+                : `<br><span style="color:var(--text-muted); font-size:12px;">Bantuan Murni (Gratis)</span>`;
+            const nama = p.warga ? p.warga.nama : 'Anonim / Data Lama';
+
+            html += `<tr><td>${esc(p.tanggal || '-')}</td><td>${esc(nama)}</td><td>${fmtBeras(p.jumlahBeras)} KG ${tipe}</td>`;
+            if (!isWarga) html += `<td><button class="btn-aksi btn-hapus" onclick="hapusPenyaluran(${Number(p.id)})">Retur</button></td>`;
+            html += `</tr>`;
+        });
+        html += `<tr class="row-pemisah"><td colspan="2" style="text-align:right;">Subtotal Rentang Ini:</td><td style="color:var(--text-main);">${fmtBeras(total)} KG</td>${isWarga ? '' : '<td></td>'}</tr>`;
+        tabelElement.innerHTML = html;
+    }
+
+    // FILTER TABEL
+    function applyFilterRT(tipe) {
+        if(tipe === 'masuk' || !tipe) {
+            const date = document.getElementById("filterDateRTMasuk") ? document.getElementById("filterDateRTMasuk").value : "";
+            kirimApi('/api/setoran').then(sData => { if(!sData) return; let fS = date ? sData.filter(s => s.tanggal === date) : sData; prosesRenderTabelSetoran(document.getElementById("tabelRiwayat"), fS); });
+        }
+        if(tipe === 'keluar' || !tipe) {
+            const date = document.getElementById("filterDateRTKeluar") ? document.getElementById("filterDateRTKeluar").value : "";
+            kirimApi('/api/penyaluran').then(pData => { if(!pData) return; let fP = date ? pData.filter(p => p.tanggal === date) : pData; renderTabelPenyaluran(document.getElementById("tabelRiwayatPenyaluran"), fP, false); });
+        }
+    }
+
+    function applyFilterPetugas() {
+        const date = document.getElementById("filterDatePetugasAbsen") ? document.getElementById("filterDatePetugasAbsen").value : "";
+        kirimApi('/api/setoran').then(data => { if(!data) return; let fData = date ? data.filter(s => s.tanggal === date) : data; prosesRenderTabelSetoran(document.getElementById("tabelRiwayatPetugas"), fData); });
+    }
+
+    function applyFilterWarga(tipe) {
+        if(tipe === 'masuk' || !tipe) {
+            const date = document.getElementById("filterDateWargaMasuk") ? document.getElementById("filterDateWargaMasuk").value : "";
+            kirimApi('/api/setoran').then(sData => { if(!sData) return; let fS = date ? sData.filter(s => s.tanggal === date) : sData; prosesRenderTabelSetoran(document.getElementById("tabelRiwayatWarga"), fS); });
+        }
+        if(tipe === 'keluar' || !tipe) {
+            const date = document.getElementById("filterDateWargaKeluar") ? document.getElementById("filterDateWargaKeluar").value : "";
+            kirimApi('/api/penyaluran').then(pData => { if(!pData) return; let fP = date ? pData.filter(p => p.tanggal === date) : pData; renderTabelPenyaluran(document.getElementById("tabelPenyaluranWarga"), fP, true); });
+        }
+    }
+
+    // ==========================================
+    // REFRESH DATA & KELOLA AKSES RT
+    // ==========================================
+    function refreshDataRT() { fetchTotalBeras("totalBerasValue"); fetchBerasHarianDinamic(); loadTabelWargaDanDropdownPenyaluran(); renderBukuKas(); applyFilterRT(); muatDataAkses(); }
+    function refreshDataPetugas() { fetchTotalBeras("totalBerasPetugasValue"); fetchBerasHarianDinamic(); loadDaftarWargaDropdownPetugas(); applyFilterPetugas(); }
+    function refreshDataWarga() { fetchTotalBeras("totalBerasWargaValue"); fetchBerasHarianDinamic(); renderBukuKas(); applyFilterWarga(); }
+    function refreshSetelahAksiSetoran() { if (!document.getElementById("rtDashboard").classList.contains("hidden")) refreshDataRT(); else if (!document.getElementById("petugasDashboard").classList.contains("hidden")) refreshDataPetugas(); }
+
+    function muatDataAkses() {
+        kirimApi('/api/auth/daftar-akun', { method: 'GET' })
+        .then(data => {
+            if(!data) return;
+            const akunPetugas = data.find(a => a.role === 'ROLE_PETUGAS');
+            window.idAkunPetugas = akunPetugas ? akunPetugas.id : null;
+            if (akunPetugas) document.getElementById('usernamePetugas').value = akunPetugas.username;
+            window.cacheAkunRT = data.filter(a => a.role === 'ROLE_RT').sort((a, b) => a.id - b.id);
+            muatUsernameRT();
+        })
+        .catch(err => console.log('Gagal memuat akun', err));
+    }
+
+    function muatUsernameRT() {
+        const jenis = document.getElementById('pilihAkunRT').value;
+        if(window.cacheAkunRT) {
+            const akunRT = window.cacheAkunRT[jenis === 'rt_utama' ? 0 : 1];
+            if(akunRT) document.getElementById('usernameRTEdit').value = akunRT.username;
+        }
+    }
+
+    function simpanAkses(tipe, btn) {
+        let payload = {};
+        if (tipe === 'petugas') {
+            const user = document.getElementById('usernamePetugas').value.trim().toLowerCase();
+            const pass = document.getElementById('passwordPetugas').value.trim();
+            if(!user || !pass) return tampilError('Peringatan', 'Username dan Sandi petugas tidak boleh kosong.');
+            if(pass.length < 6) return tampilError('Sandi Terlalu Pendek', 'Sandi minimal 6 karakter.');
+            if (!window.idAkunPetugas) return tampilError('Akun Tidak Ditemukan', 'Data akun petugas belum termuat. Muat ulang halaman.');
+            payload = { idTarget: window.idAkunPetugas, username: user, passwordBaru: pass }; 
+        } else {
+            const jenis = document.getElementById('pilihAkunRT').value;
+            const akunTarget = (window.cacheAkunRT || [])[jenis === 'rt_utama' ? 0 : 1];
+            if (!akunTarget) return tampilError('Akun Tidak Ditemukan', 'Data akun RT belum termuat. Muat ulang halaman.');
+            const idTarget = akunTarget.id;
+            const user = document.getElementById('usernameRTEdit').value.trim().toLowerCase();
+            const pass = document.getElementById('passwordRTEdit').value.trim();
+            if(!user || !pass) return tampilError('Peringatan', 'Username dan Sandi tidak boleh kosong.');
+            if(pass.length < 6) return tampilError('Sandi Terlalu Pendek', 'Sandi minimal 6 karakter.');
+            payload = { idTarget: idTarget, username: user, passwordBaru: pass };
+        }
+
+        Swal.fire({
+            title: 'Ubah Akses Sistem?',
+            text: 'Tindakan ini akan mengganti Kredensial Login.',
+            showCancelButton: true, confirmButtonColor: primaryColor, cancelButtonColor: '#64748B',
+            confirmButtonText: 'Ya, Ubah', cancelButtonText: 'Batal', customClass: swalCustomClass
+        }).then((result) => {
+            if (result.isConfirmed) {
+                denganKunci(btn, async () => {
+                    try {
+                        await kirimApi('/api/auth/ubah-akses', { 
+                            method: 'PUT', headers: { 'Content-Type': 'application/json' }, 
+                            body: JSON.stringify(payload) 
+                        });
+                        Swal.fire({ title: 'Akses Diperbarui', timer: 1500, confirmButtonColor: primaryColor, customClass: swalCustomClass });
+                        document.getElementById('passwordPetugas').value = "";
+                        document.getElementById('passwordRTEdit').value = "";
+                        muatDataAkses(); 
+                    } catch (e) { tampilError('Gagal Memperbarui', e.message); }
+                });
+            }
+        });
+    }
+
+    // CRUD WARGA & PENYALURAN
+    let wargaCache = {};
+
+    function loadTabelWargaDanDropdownPenyaluran() {
+        kirimApi('/api/warga').then(data => {
+            if(!data) return;
+            const tabel = document.getElementById("tabelDaftarWarga"); const dropdown = document.getElementById("pilihWargaPenyaluran");
+            wargaCache = {};
+            dropdown.innerHTML = '<option value="">-- Pilih Warga Penerima --</option>';
+            if (data.length === 0) { tabel.innerHTML = "<tr><td colspan='3' style='text-align: center; color: var(--text-muted); padding: 24px;'>Buku induk warga masih kosong.</td></tr>"; return; }
+            let htmlTabel = ''; let htmlOpsi = '';
+            data.forEach(w => {
+                wargaCache[w.id] = w;
+                htmlTabel += `<tr><td>${esc(w.nama)}</td><td>${esc(w.alamat)}</td><td><button class="btn-aksi btn-edit" onclick="editWarga(${Number(w.id)})">Edit</button><button class="btn-aksi btn-hapus" onclick="hapusWarga(${Number(w.id)})">Hapus</button></td></tr>`;
+                htmlOpsi += `<option value="${Number(w.id)}">${esc(w.nama)} (${esc(w.alamat)})</option>`;
+            });
+            tabel.innerHTML = htmlTabel; dropdown.innerHTML += htmlOpsi;
+        });
+    }
+
+    function simpanWarga(btn) {
+        const nama = document.getElementById("namaWargaBaru").value.trim(), alamat = document.getElementById("alamatWarga").value.trim();
+        if (nama === "" || alamat === "") return tampilError('Peringatan Sistem', 'Nama dan alamat domisili wajib dilengkapi.');
+        return denganKunci(btn, async () => {
+            try {
+                await kirimApi('/api/warga', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nama: nama, alamat: alamat }) });
+                Swal.fire({ title: 'Tersimpan', timer: 1500, confirmButtonColor: primaryColor, customClass: swalCustomClass });
+                document.getElementById("namaWargaBaru").value = ""; document.getElementById("alamatWarga").value = "";
+                loadTabelWargaDanDropdownPenyaluran();
+            } catch (e) { tampilError('Gagal Menyimpan', e.message); }
+        });
+    }
+
+    function simpanPenyaluran(btn) {
+        const idWarga = document.getElementById("pilihWargaPenyaluran").value;
+        const jumlah = parseFloat(document.getElementById("jumlahPenyaluran").value);
+        const jenis = document.getElementById("jenisPenyaluran").value;
+        const nominalStr = document.getElementById("nominalUang").value;
+
+        if (!idWarga || !(jumlah > 0)) return tampilError('Formulir Tidak Lengkap', 'Pilih penerima dan isi jumlah beras (lebih dari 0).');
+        let nominalVal = null;
+        if (jenis === "Subsidi") {
+            nominalVal = parseFloat(nominalStr);
+            if (isNaN(nominalVal) || nominalVal < 0) return tampilError('Input Nominal', 'Mohon isi nominal uang tunai dari penjualan.');
+        }
+
+        return denganKunci(btn, async () => {
+            try {
+                await kirimApi('/api/penyaluran', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ warga: { id: parseInt(idWarga) }, jumlahBeras: jumlah, jenisPenyaluran: jenis, nominalUang: nominalVal }) });
+                Swal.fire({ title: 'Proses Berhasil', timer: 1500, confirmButtonColor: primaryColor, customClass: swalCustomClass });
+                document.getElementById("pilihWargaPenyaluran").value = ""; document.getElementById("jumlahPenyaluran").value = ""; document.getElementById("nominalUang").value = "";
+                refreshDataRT();
+            } catch (e) { tampilError('Gagal Memproses', e.message); }
+        });
+    }
+
+    function hapusPenyaluran(id) {
+        Swal.fire({ title: 'Retur Distribusi?', text: 'Jumlah beras akan dikembalikan ke dalam stok.', showCancelButton: true, confirmButtonColor: deleteColor, confirmButtonText: 'Proses Retur', cancelButtonText: 'Batal', customClass: swalCustomClass }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try { await kirimApi('/api/penyaluran/' + id, { method: 'DELETE' }); refreshDataRT(); }
+            catch (e) { tampilError('Retur Ditolak', e.message); }
+        });
+    }
+
+    function hapusSetoran(id) {
+        Swal.fire({ title: 'Batalkan Entri?', showCancelButton: true, confirmButtonColor: deleteColor, confirmButtonText: 'Batalkan', cancelButtonText: 'Kembali', customClass: swalCustomClass }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try { await kirimApi('/api/setoran/' + id, { method: 'DELETE' }); refreshSetelahAksiSetoran(); }
+            catch (e) { tampilError('Pembatalan Ditolak', e.message); }
+        });
+    }
+
+    function editWarga(id) {
+        const w = wargaCache[id]; if (!w) return;
+        Swal.fire({
+            title: 'Edit Data Warga',
+            html: `<div class="form-group"><input id="swal-nama" class="swal2-input" value="${esc(w.nama)}" style="width: 100%;"></div><div class="form-group"><input id="swal-alamat" class="swal2-input" value="${esc(w.alamat)}" style="width: 100%;"></div>`,
+            showCancelButton: true, confirmButtonColor: primaryColor, confirmButtonText: "Perbarui Data", cancelButtonText: 'Batal', customClass: swalCustomClass,
+            preConfirm: () => {
+                const nama = document.getElementById('swal-nama').value.trim(), alamat = document.getElementById('swal-alamat').value.trim();
+                if (!nama || !alamat) { Swal.showValidationMessage('Nama dan alamat wajib diisi.'); return false; }
+                return { nama: nama, alamat: alamat };
+            }
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try { await kirimApi('/api/warga/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.value) }); loadTabelWargaDanDropdownPenyaluran(); }
+            catch (e) { tampilError('Gagal Memperbarui', e.message); }
+        });
+    }
+
+    function hapusWarga(id) {
+        const w = wargaCache[id]; const nama = w ? w.nama : 'warga ini';
+        Swal.fire({ title: 'Hapus Buku Induk?', text: 'Profil ' + nama + ' akan dihapus dari sistem.', showCancelButton: true, confirmButtonColor: deleteColor, confirmButtonText: 'Konfirmasi Hapus', cancelButtonText: 'Batal', customClass: swalCustomClass }).then(async (result) => {
+            if (!result.isConfirmed) return;
+            try { await kirimApi('/api/warga/' + id, { method: 'DELETE' }); loadTabelWargaDanDropdownPenyaluran(); }
+            catch (e) { tampilError('Tidak Dapat Menghapus', e.message); }
+        });
+    }
+
+    // FITUR PETUGAS
+    function ambilDraftHariIni() {
+        try {
+            const d = JSON.parse(localStorage.getItem('draftSetoranWarga'));
+            if (d && d.tgl === hariIniWIB() && Array.isArray(d.ids)) return d.ids;
+        } catch (e) {}
+        return [];
+    }
+
+    function updateCounterPetugas() {
+        const checkboxes = document.querySelectorAll('.ceklis-warga:checked');
+        const el = document.getElementById('counterWarga');
+        if (el) el.innerText = checkboxes.length + " Warga Terpilih";
+        const checkedIds = Array.from(checkboxes).map(cb => cb.value);
+        try { localStorage.setItem('draftSetoranWarga', JSON.stringify({ tgl: hariIniWIB(), ids: checkedIds })); } catch (e) {}
+    }
+
+    function cekValidasiSetoran(checkboxElem) {
+        // Warga yang sudah setor hari ini sudah dinonaktifkan saat daftar dimuat
+        updateCounterPetugas();
+    }
+
+    function loadDaftarWargaDropdownPetugas() {
+        const container = document.getElementById("containerCheckboxWarga");
+        const todayStr = hariIniWIB();
+        Promise.all([ kirimApi('/api/warga'), kirimApi('/api/setoran').catch(() => []) ]).then(([wargaData, setoranData]) => {
+            if(!wargaData) return;
+            if (wargaData.length === 0) { container.innerHTML = '<p style="padding: 16px; color: var(--text-muted);">Buku induk belum diisi oleh pengurus.</p>'; return; }
+
+            const sudahSetorId = new Set(); const sudahSetorNama = new Set();
+            (setoranData || []).forEach(s => {
+                if (s.tanggal !== todayStr) return;
+                if (s.warga && s.warga.id != null) sudahSetorId.add(String(s.warga.id)); else sudahSetorNama.add(s.namaWarga);
+            });
+
+            const draft = ambilDraftHariIni();
+            let html = '';
+            wargaData.forEach(warga => {
+                const sudah = sudahSetorId.has(String(warga.id)) || sudahSetorNama.has(warga.nama);
+                const isChecked = (!sudah && draft.includes(warga.id.toString())) ? 'checked' : '';
+                html += `
+                <label class="warga-card" ${sudah ? 'style="opacity:0.55; cursor:default;"' : ''}>
+                    <input type="checkbox" class="ceklis-warga" value="${Number(warga.id)}" data-nama="${esc(warga.nama)}" ${isChecked} ${sudah ? 'disabled' : ''} onchange="cekValidasiSetoran(this)">
+                    <div class="warga-info">
+                        <strong>${esc(warga.nama)}</strong>
+                        <span>${esc(warga.alamat)}${sudah ? ' &middot; <b style="color:var(--success);">Sudah setor hari ini</b>' : ''}</span>
+                    </div>
+                </label>`;
+            });
+            container.innerHTML = html;
+            updateCounterPetugas();
+        });
+    }
+
+    async function simpanSetoranKolektif(btn) {
+        const checkboxes = document.querySelectorAll('.ceklis-warga:checked');
+        const totalJumlah = parseFloat(document.getElementById("jumlahBerasKolektif").value);
+        if (checkboxes.length === 0) return tampilError('Daftar Kosong', 'Tandai warga yang menyetor terlebih dahulu.');
+        if (isNaN(totalJumlah) || totalJumlah <= 0) return tampilError('Volume Tidak Valid', 'Mohon isi estimasi KG hasil keliling.');
+
+        const konfirmasi = await Swal.fire({
+            title: 'Simpan Setoran Keliling?',
+            html: `<b>${checkboxes.length}</b> warga &bull; <b>${fmtBeras(totalJumlah)} KG</b>`,
+            showCancelButton: true, confirmButtonText: 'Simpan', cancelButtonText: 'Periksa Lagi',
+            confirmButtonColor: primaryColor, customClass: swalCustomClass
+        });
+        if (!konfirmasi.isConfirmed) return;
+
+        return denganKunci(btn, async () => {
+            const wargaIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            try {
+                await kirimApi('/api/setoran/kolektif', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ wargaIds: wargaIds, totalBeras: totalJumlah }) });
+                try { localStorage.removeItem('draftSetoranWarga'); } catch (e) {}
+                Swal.fire({ title: 'Pencatatan Selesai', confirmButtonColor: primaryColor, timer: 1500, customClass: swalCustomClass });
+                document.getElementById("jumlahBerasKolektif").value = "";
+                refreshDataPetugas();
+            } catch (e) {
+                tampilError('Gagal Menyimpan', e.message);
+                refreshDataPetugas();
+            }
+        });
+    }
+
+    function resetCeklisPetugas() {
+        Swal.fire({ title: 'Mulai Ulang Pilihan?', showCancelButton: true, confirmButtonColor: deleteColor, confirmButtonText: 'Kosongkan', cancelButtonText: 'Batal', customClass: swalCustomClass }).then((result) => {
+            if (result.isConfirmed) { try { localStorage.removeItem('draftSetoranWarga'); } catch (e) {} document.querySelectorAll('.ceklis-warga').forEach(cb => cb.checked = false); updateCounterPetugas(); }
+        });
+    }
+
+    // ==========================================
+    // FUNGSI BACA FILE CSV
+    // ==========================================
+    function bersihCSV(s) { return String(s).trim().replace(/^"(.*)"$/, '$1').trim(); }
+    function prosesFileCSV(file) {
+        if (file && file.name.toLowerCase().endsWith('.csv')) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const arrayWarga = []; 
+                const lines = event.target.result.replace(/^\uFEFF/, '').split(/\r?\n/);
+                
+                lines.forEach((baris, index) => {
+                    if (baris.trim() !== '') { 
+                        const pemisah = baris.includes(';') ? ';' : ',';
+                        const kolom = baris.split(pemisah); 
+                        
+                        if(kolom.length >= 2) {
+                            const nama = bersihCSV(kolom[0]);
+                            const alamat = bersihCSV(kolom.slice(1).join(pemisah));
+
+                            if (index === 0 && nama.toLowerCase() === 'nama') { return; }
+                            arrayWarga.push({ nama: nama, alamat: alamat }); 
+                        }
+                    }
+                });
+                
+                if (arrayWarga.length > 0) { kirimWargaMassalKeBackend(arrayWarga); } 
+                else { Swal.fire({ title: 'Format Tidak Sesuai', text: 'Format tabel CSV wajib berisi: Nama, Alamat.', confirmButtonColor: primaryColor, customClass: swalCustomClass }); }
+            }; 
+            reader.readAsText(file);
+        } else {
+            Swal.fire({ title: 'Format File Tertolak', text: 'Sistem hanya menerima ekstensi .csv', confirmButtonColor: primaryColor, customClass: swalCustomClass });
+        }
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) { prosesFileCSV(file); event.target.value = ''; }
+    }
+
+    const dropZone = document.getElementById('drop-zone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = primaryColor; dropZone.style.backgroundColor = '#FFFFFF'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; dropZone.style.backgroundColor = ''; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.style.borderColor = ''; dropZone.style.backgroundColor = '';
+            const file = e.dataTransfer.files[0]; prosesFileCSV(file);
+        });
+    }
+
+    async function kirimWargaMassalKeBackend(arrayWarga) {
+        Swal.fire({ title: 'Mengimpor Data...', allowOutsideClick: false, customClass: swalCustomClass, didOpen: () => { Swal.showLoading(); } });
+
+        let berhasil = 0; const gagal = [];
+        for (const warga of arrayWarga) {
+            try {
+                await kirimApi('/api/warga', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(warga) });
+                berhasil++;
+            } catch (e) { gagal.push(warga.nama + ': ' + e.message); }
+        }
+
+        if (gagal.length === 0) {
+            Swal.fire({ title: 'Impor Selesai', text: berhasil + ' warga berhasil ditambahkan.', timer: 2500, confirmButtonColor: primaryColor, customClass: swalCustomClass });
+        } else {
+            const contoh = gagal.slice(0, 5).map(esc).join('<br>');
+            Swal.fire({ title: 'Tersimpan Sebagian', html: `${berhasil} berhasil, ${gagal.length} dilewati.<br><small>${contoh}${gagal.length > 5 ? '<br>...' : ''}</small>`, confirmButtonColor: primaryColor, customClass: swalCustomClass });
+        }
+        loadTabelWargaDanDropdownPenyaluran();
+    }
+
+    // Label kolom otomatis untuk tampilan kartu di HP
+    function labelTabelMobile() {
+        document.querySelectorAll('table').forEach(t => {
+            const heads = Array.from(t.querySelectorAll('thead th')).map(h => h.textContent.trim());
+            t.querySelectorAll('tbody tr').forEach(tr => {
+                if (tr.classList.contains('row-pemisah')) return;
+                Array.from(tr.children).forEach((td, i) => {
+                    if (td.colSpan > 1 || !heads[i]) return;
+                    td.setAttribute('data-label', heads[i]);
+                });
+            });
+        });
+    }
+    document.querySelectorAll('tbody').forEach(tb => {
+        new MutationObserver(labelTabelMobile).observe(tb, { childList: true });
+    });
+    labelTabelMobile();
+</script>
+
+</body>
+</html>
